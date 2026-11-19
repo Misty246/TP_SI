@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS variable (
     type_var VARCHAR(20) NOT NULL,
     adresse_memoire VARCHAR(50) NOT NULL,
     unite VARCHAR(20),
+    frequence_acquisition INT NOT NULL DEFAULT 60,
     FOREIGN KEY (machine_id) REFERENCES machine(id) ON DELETE CASCADE
 );
 
