@@ -1,5 +1,10 @@
+git checkout -b feature/routes-api -> Ceci est un exemple de branche 
 git add .
-git commit -m "votre message"
-git push
+git commit -m "feat(backend): ajout des routes pour les variables"
+git push -u origin feature/routes-api
 
-Fichier en vert alors pas présent dans github.
+git remote add origin https://github.com/Misty246/TP_SI.git -> pour se connecter au repo
+git remote set-url origin https://github.com/votre-nom/nouvel-autre-repo.git -> Pour changer le repo 
+
+Fichier Vert -> Pas dans github
+Fichier Orange Modification du fichier pas pris en compte
