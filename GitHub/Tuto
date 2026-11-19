@@ -1,0 +1,5 @@
+git add .
+git commit -m "votre message"
+git push
+
+Fichier en vert alors pas présent dans github.
