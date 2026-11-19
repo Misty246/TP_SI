@@ -2,7 +2,9 @@ Liste des choses à faire
 
 Backend :
 
-- Préparer les roots pour le frontend
+- Créer le serveur Backend et le connecter à mariadb
+
+- Créer les roots pour le frontend
 
 - Gérer le relevé des valeurs sur l'automate
 
