@@ -1,3 +1,1 @@
-DESCRIBE machine;
-DESCRIBE variable;
-DESCRIBE historique;
+SELECT * FROM machine;
