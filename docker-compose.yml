@@ -14,12 +14,17 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - hackathon-net
 
   # Service Backend (Node.js)
   backend:
-    build: ./backend
+    build: ./Backend
     container_name: hackathon_backend
     restart: always
     ports:
@@ -31,7 +36,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - hackathon-net
 
