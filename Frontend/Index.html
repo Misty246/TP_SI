@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INDUSTRIA — Supervision process</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<aside class="sidebar">
+    <div class="brand">
+        <div class="brand-mark"><i class="bi bi-activity"></i></div>
+        <div><strong>INDUSTRIA</strong><small>PROCESS MONITORING</small></div>
+    </div>
+
+    <div class="nav-label" data-i18n="workspace">ESPACE DE TRAVAIL</div>
+    <nav>
+        <a class="nav-link active" data-page="dashboard">
+            <i class="bi bi-grid-1x2"></i><span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a class="nav-link" data-page="settings">
+            <i class="bi bi-sliders"></i><span data-i18n="configuration">Paramétrage</span>
+        </a>
+        <a class="nav-link" data-page="preferences">
+            <i class="bi bi-gear"></i><span data-i18n="preferences">Paramètres</span>
+        </a>
+    </nav>
+
+    <div class="side-bottom">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="dot"></span>
+            <span style="color:#59dcb0" data-i18n="systemOperational">Système opérationnel</span>
+        </div>
+        <span data-i18n="prototype">Prototype de supervision v1.0</span><br>
+        <span data-i18n="openSource">Solution open source</span>
+    </div>
+</aside>
+
+<main class="main">
+    <header class="topbar">
+        <div class="crumb">
+            INDUSTRIA <span class="mx-2">/</span>
+            <b id="breadcrumb">Dashboard</b>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="live-pill">
+                <span class="dot"></span>
+                <span data-i18n="supervisionActive">SUPERVISION ACTIVE</span>
+            </span>
+            <span class="text-secondary small d-none d-sm-inline">
+                <i class="bi bi-person-circle me-1"></i>
+                <span data-i18n="technician">Technicien</span>
+            </span>
+        </div>
+    </header>
+
+    <section class="content">
+
+        <!-- DASHBOARD -->
+        <div id="dashboardPage">
+            <div class="page-head">
+                <div>
+                    <div class="eyebrow" data-i18n="overview">Vue d'ensemble · Supervision</div>
+                    <h1 data-i18n="dashboardTitle">Dashboard process</h1>
+                    <div class="sub" data-i18n="dashboardSubtitle">
+                        Suivez les performances de vos installations en temps réel.
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn-outline" onclick="exportChart()">
+                        <i class="bi bi-image me-1"></i>
+                        <span data-i18n="exportPng">Export PNG</span>
+                    </button>
+                    <button class="btn-cyan" onclick="exportCSV()">
+                        <i class="bi bi-download me-1"></i>
+                        <span data-i18n="exportCsv">Export CSV</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="panel-title">
+                            <i class="bi bi-funnel me-2" style="color:var(--cyan)"></i>
+                            <span data-i18n="supervisionFilters">Filtres de supervision</span>
+                        </div>
+                        <div class="panel-sub" data-i18n="filterSubtitle">
+                            Choisissez les équipements et les données à afficher.
+                        </div>
+                    </div>
+                    <span class="tag" data-i18n="filters">FILTRES</span>
+                </div>
+
+                <div class="filter-row">
+                    <div class="field">
+                        <label class="form-label" data-i18n="machine">Automate</label>
+                        <select id="machineFilter" class="form-select" onchange="updateVariableOptions();renderDashboard()">
+                            <option value="all" data-i18n="allMachines">Tous les automates</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label class="form-label" data-i18n="monitoredVariable">Variable surveillée</label>
+                        <select id="variableFilter" class="form-select" onchange="renderDashboard()">
+                            <option value="all" data-i18n="allVariables">Toutes les variables</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label class="form-label" data-i18n="period">Période</label>
+                        <select id="periodFilter" class="form-select" onchange="renderDashboard()">
+                            <option value="1" data-i18n="last24Hours">Dernières 24 heures</option>
+                            <option value="7" data-i18n="last7Days">7 derniers jours</option>
+                            <option value="30" data-i18n="last30Days">30 derniers jours</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-outline" onclick="resetFilters()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        <span data-i18n="reset">Réinitialiser</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi">
+                    <div class="kpi-top">
+                        <span data-i18n="lastMeasurement">Dernière mesure</span>
+                        <i class="bi bi-speedometer2 kpi-icon"></i>
+                    </div>
+                    <div class="kpi-value" id="kpiLast">72.4</div>
+                    <div class="kpi-foot" data-i18n="latestValue">Valeur la plus récente</div>
+                </div>
+
+                <div class="kpi">
+                    <div class="kpi-top">
+                        <span data-i18n="averageValue">Valeur moyenne</span>
+                        <i class="bi bi-graph-up kpi-icon"></i>
+                    </div>
+                    <div class="kpi-value" id="kpiAvg">70.8</div>
+                    <div class="kpi-foot" data-i18n="selectedPeriod">Sur la période sélectionnée</div>
+                </div>
+
+                <div class="kpi">
+                    <div class="kpi-top">
+                        <span data-i18n="minimumValue">Valeur minimale</span>
+                        <i class="bi bi-arrow-down-circle kpi-icon"></i>
+                    </div>
+                    <div class="kpi-value" id="kpiMin">68.2</div>
+                    <div class="kpi-foot" data-i18n="selectedPeriod">Sur la période sélectionnée</div>
+                </div>
+
+                <div class="kpi">
+                    <div class="kpi-top">
+                        <span data-i18n="maximumValue">Valeur maximale</span>
+                        <i class="bi bi-arrow-up-circle kpi-icon"></i>
+                    </div>
+                    <div class="kpi-value" id="kpiMax">74.1</div>
+                    <div class="kpi-foot" data-i18n="selectedPeriod">Sur la période sélectionnée</div>
+                </div>
+            </div>
+
+            <div class="panel chart-panel">
+                <div class="chart-head">
+                    <div>
+                        <div class="panel-title" data-i18n="variableEvolution">Évolution des variables</div>
+                        <div class="panel-sub" data-i18n="historySubtitle">
+                            Historique des mesures · Actualisation simulée
+                        </div>
+                    </div>
+                    <span class="live-pill">
+                        <span class="dot"></span>
+                        <span data-i18n="live">EN DIRECT</span>
+                    </span>
+                </div>
+
+                <div class="chart-wrap">
+                    <canvas id="processChart"></canvas>
+                </div>
+
+                <div class="legend-note mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span data-i18n="demoData">Les données affichées sont des données de démonstration.</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <div class="panel-title" data-i18n="latestReadings">Derniers relevés</div>
+                        <div class="panel-sub" data-i18n="timestampedData">Données historisées avec horodatage</div>
+                    </div>
+                    <button class="btn-outline" onclick="exportCSV()">
+                        <i class="bi bi-filetype-csv me-1"></i>
+                        <span data-i18n="downloadData">Télécharger les données</span>
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th data-i18n="timestamp">Horodatage</th>
+                                <th data-i18n="machine">Automate</th>
+                                <th data-i18n="variable">Variable</th>
+                                <th data-i18n="value">Valeur</th>
+                                <th data-i18n="unit">Unité</th>
+                                <th data-i18n="state">État</th>
+                            </tr>
+                        </thead>
+                        <tbody id="readingsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIGURATION -->
+        <div id="settingsPage" class="hidden">
+            <div class="page-head">
+                <div>
+                    <div class="eyebrow" data-i18n="equipmentConfiguration">Configuration · Équipements</div>
+                    <h1 data-i18n="configuration">Paramétrage</h1>
+                    <div class="sub" data-i18n="configurationSubtitle">
+                        Configurez les automates et les variables à surveiller.
+                    </div>
+                </div>
+                <button class="btn-cyan" onclick="openMachineModal()">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    <span data-i18n="addMachine">Ajouter un automate</span>
+                </button>
+            </div>
+
+            <div class="config-grid">
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <div class="panel-title" data-i18n="configuredMachines">Automates configurés</div>
+                            <div class="panel-sub" data-i18n="connectedEquipment">Équipements connectés au système</div>
+                        </div>
+                        <span class="tag" id="machineCount">0 équipement</span>
+                    </div>
+                    <div id="machineList"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <div class="panel-title" data-i18n="monitoredVariables">Variables surveillées</div>
+                            <div class="panel-sub" data-i18n="registerDescription">
+                                Définissez les registres et fréquences de lecture
+                            </div>
+                        </div>
+                        <button class="btn-cyan" onclick="openVariableModal()">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            <span data-i18n="add">Ajouter</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="variable">Variable</th>
+                                    <th data-i18n="machine">Automate</th>
+                                    <th data-i18n="register">Registre</th>
+                                    <th data-i18n="frequency">Fréquence</th>
+                                    <th data-i18n="state">État</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="configVariables"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel mt-3">
+                <div class="panel-title">
+                    <i class="bi bi-info-circle me-2" style="color:var(--cyan)"></i>
+                    <span data-i18n="aboutConfiguration">À propos de la configuration</span>
+                </div>
+                <div class="panel-sub mt-2" data-i18n="configurationInfo">
+                    Les paramètres saisis ici constituent une configuration de démonstration côté navigateur.
+                    Dans la version connectée, ils seront enregistrés en base de données et transmis au backend
+                    via l'API REST pour piloter les lectures Modbus.
+                </div>
+            </div>
+        </div>
+
+        <!-- PREFERENCES -->
+        <div id="preferencesPage" class="hidden">
+            <div class="page-head">
+                <div>
+                    <div class="eyebrow" data-i18n="personalization">Personnalisation</div>
+                    <h1 data-i18n="preferences">Paramètres</h1>
+                    <div class="sub" data-i18n="preferencesSubtitle">
+                        Personnalisez l'apparence et la langue de votre interface.
+                    </div>
+                </div>
+            </div>
+
+            <div class="preferences-grid">
+                <div class="panel preference-card">
+                    <div class="preference-icon"><i class="bi bi-palette"></i></div>
+                    <div class="panel-title" data-i18n="appearance">Apparence</div>
+                    <div class="panel-sub" data-i18n="appearanceDescription">
+                        Choisissez le thème visuel de l'application.
+                    </div>
+
+                    <label class="form-label mt-4" for="themeSelector" data-i18n="interfaceTheme">
+                        Thème de l'interface
+                    </label>
+                    <select class="form-select" id="themeSelector" onchange="changeTheme(this.value)">
+                        <option value="dark" data-i18n="darkTheme">Sombre</option>
+                        <option value="light" data-i18n="lightTheme">Clair</option>
+                    </select>
+                </div>
+
+                <div class="panel preference-card">
+                    <div class="preference-icon"><i class="bi bi-translate"></i></div>
+                    <div class="panel-title" data-i18n="language">Langue</div>
+                    <div class="panel-sub" data-i18n="languageDescription">
+                        Sélectionnez la langue de l'interface.
+                    </div>
+
+                    <label class="form-label mt-4" for="languageSelector" data-i18n="interfaceLanguage">
+                        Langue de l'interface
+                    </label>
+                    <select class="form-select" id="languageSelector" onchange="changeLanguage(this.value)">
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="zh">🇨🇳 中文</option>
+                        <option value="es">🇪🇸 Español</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="panel mt-3">
+                <div class="panel-title">
+                    <i class="bi bi-info-circle me-2" style="color:var(--cyan)"></i>
+                    <span data-i18n="preferencesInfoTitle">Préférences enregistrées</span>
+                </div>
+                <div class="panel-sub mt-2" data-i18n="preferencesInfo">
+                    Vos choix sont automatiquement sauvegardés dans votre navigateur et seront conservés lors de vos prochaines visites.
+                </div>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<div class="toast-msg" id="toast">
+    <i class="bi bi-check-circle me-2"></i>
+    <span id="toastText">Action réalisée</span>
+</div>
+
+<!-- MODALE AUTOMATE -->
+<div class="modal fade" id="machineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fs-6" id="machineModalTitle">Ajouter un automate</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="machineEditId">
+                <label class="form-label" data-i18n="machineName">Nom de l'automate</label>
+                <input class="form-control mb-3" id="machineName" placeholder="Ex. Automate ligne 1">
+                <label class="form-label" data-i18n="ipAddress">Adresse IP</label>
+                <input class="form-control" id="machineIP" placeholder="192.168.1.10">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" data-bs-dismiss="modal" data-i18n="cancel">Annuler</button>
+                <button class="btn-cyan" onclick="saveMachine()" data-i18n="save">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE VARIABLE -->
+<div class="modal fade" id="variableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fs-6" id="variableModalTitle">Ajouter une variable</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="variableEditId">
+
+                <label class="form-label" data-i18n="variableName">Nom de la variable</label>
+                <input class="form-control mb-3" id="variableName" placeholder="Ex. Température cuve">
+
+                <label class="form-label" data-i18n="associatedMachine">Automate associé</label>
+                <select class="form-select mb-3" id="variableMachine"></select>
+
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label" data-i18n="registerAddress">Registre / adresse</label>
+                        <input class="form-control mb-3" id="variableRegister" placeholder="40001">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" data-i18n="unit">Unité</label>
+                        <input class="form-control mb-3" id="variableUnit" placeholder="°C">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label" data-i18n="dataType">Type de donnée</label>
+                        <select class="form-select" id="variableType">
+                            <option>Float</option>
+                            <option>Integer</option>
+                            <option>Boolean</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" data-i18n="frequencySeconds">Fréquence (secondes)</label>
+                        <input type="number" min="1" class="form-control" id="variableFrequency" value="5">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" data-bs-dismiss="modal" data-i18n="cancel">Annuler</button>
+                <button class="btn-cyan" onclick="saveVariable()" data-i18n="save">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
