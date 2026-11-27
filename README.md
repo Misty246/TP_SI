@@ -62,10 +62,18 @@ conteneur backend.
 
 ## Base de données
 
-Au premier démarrage sur un volume vide, MariaDB exécute les scripts SQL de
-`Backend/database`. Les données sont ensuite conservées dans le volume Docker
-`db_data` : un simple redémarrage ne réexécute pas `init.sql` et ne supprime
-pas les données.
+Au premier démarrage sur un volume vide, MariaDB exécute
+`Backend/database/init.sql`, qui crée les tables. Les requêtes de consultation
+ne doivent pas être placées dans `Backend/database`, car tous les scripts SQL
+qui s'y trouvent sont exécutés pendant l'initialisation.
+
+Les données sont ensuite conservées dans le volume Docker `db_data` : un
+simple redémarrage ne réexécute pas `init.sql` et ne supprime pas les données.
+Si l'initialisation a déjà échoué sur un nouveau poste et qu'aucune donnée
+utile n'a encore été enregistrée, le volume incomplet peut être recréé avec
+`docker compose down -v`, puis `docker compose up --build`. **Cette commande
+supprime les données MariaDB du projet** : ne l'utilisez pas si vous souhaitez
+les conserver.
 
 ## Arrêter et dépanner
 
