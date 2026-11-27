@@ -51,4 +51,14 @@ router.patch('/machines/:id', async (req, res) => {
     }
 });
 
+router.delete('/machines/:id', async (req, res) => {
+    try {
+        await db.query('DELETE FROM machine WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Automate supprimé avec succès' });
+    } catch (err) {
+        console.error('Erreur lors de la suppression de l\'automate :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 module.exports = router;

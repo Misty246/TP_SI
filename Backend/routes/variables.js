@@ -51,4 +51,14 @@ router.patch('/variables/:id', async (req, res) => {
     }
 });
 
+router.delete('/variables/:id', async (req, res) => {
+    try {
+        await db.query('DELETE FROM variable WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Variable supprimée avec succès' });
+    } catch (err) {
+        console.error('Erreur lors de la suppression de la variable :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 module.exports = router;

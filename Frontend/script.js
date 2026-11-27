@@ -2,23 +2,14 @@
 // 1. DONNEES DE L'APPLICATION
 // ==========================================
 
-let machines = [
-    { id: 1, name: "Automate Ligne 01", ip: "192.168.1.101" },
-    { id: 2, name: "Automate Cuve 02", ip: "192.168.1.102" },
-    { id: 3, name: "Automate Conditionnement", ip: "192.168.1.103" }
-];
-
-let variables = [
-    { id: 1, name: "Température process", machineId: 1, register: "40001", unit: "°C", type: "Float", frequency: 5, active: true },
-    { id: 2, name: "Pression circuit", machineId: 1, register: "40002", unit: "bar", type: "Float", frequency: 5, active: true },
-    { id: 3, name: "Débit matière", machineId: 2, register: "40010", unit: "L/min", type: "Float", frequency: 10, active: true },
-    { id: 4, name: "Niveau cuve", machineId: 2, register: "40011", unit: "%", type: "Integer", frequency: 10, active: true },
-    { id: 5, name: "Vitesse convoyeur", machineId: 3, register: "40020", unit: "tr/min", type: "Integer", frequency: 2, active: false }
-];
+let machines = [];
+let variables = [];
 
 let readings = [];
 let chart = null;
 let currentPage = "dashboard";
+const API_BASE = window.API_BASE_URL ||
+    `http://${window.location.hostname || "localhost"}:3000/api`;
 
 let currentTheme = localStorage.getItem("industriaTheme") || "dark";
 let currentLanguage = localStorage.getItem("industriaLanguage") || "fr";
@@ -70,7 +61,7 @@ const translations = {
         minimumValue: "Valeur minimale",
         maximumValue: "Valeur maximale",
         variableEvolution: "Évolution des variables",
-        historySubtitle: "Historique des mesures · Actualisation simulée",
+        historySubtitle: "Historique des mesures enregistré par le backend",
         live: "EN DIRECT",
         demoData: "Les données affichées sont des données de démonstration.",
         latestReadings: "Derniers relevés",
@@ -92,7 +83,7 @@ const translations = {
         register: "Registre",
         frequency: "Fréquence",
         aboutConfiguration: "À propos de la configuration",
-        configurationInfo: "Les paramètres saisis ici constituent une configuration de démonstration côté navigateur. Dans la version connectée, ils seront enregistrés en base de données et transmis au backend via l'API REST pour piloter les lectures Modbus.",
+        configurationInfo: "Les automates et variables affichés sont chargés depuis la base de données et enregistrés via l'API REST du backend.",
         personalization: "Personnalisation",
         preferencesSubtitle: "Personnalisez l'apparence et la langue de votre interface.",
         appearance: "Apparence",
@@ -100,6 +91,7 @@ const translations = {
         interfaceTheme: "Thème de l'interface",
         darkTheme: "Sombre",
         lightTheme: "Clair",
+        kawaiiTheme: "🌸 Kawaii rose",
         language: "Langue",
         languageDescription: "Sélectionnez la langue de l'interface.",
         interfaceLanguage: "Langue de l'interface",
@@ -179,7 +171,7 @@ const translations = {
         minimumValue: "Minimum value",
         maximumValue: "Maximum value",
         variableEvolution: "Variable trends",
-        historySubtitle: "Measurement history · Simulated updates",
+        historySubtitle: "Measurement history saved by the backend",
         live: "LIVE",
         demoData: "The displayed data is for demonstration purposes.",
         latestReadings: "Latest readings",
@@ -201,7 +193,7 @@ const translations = {
         register: "Register",
         frequency: "Frequency",
         aboutConfiguration: "About configuration",
-        configurationInfo: "The settings entered here are a browser-side demonstration configuration. In the connected version, they will be stored in a database and sent to the backend via the REST API to control Modbus readings.",
+        configurationInfo: "PLCs and variables are loaded from the database and saved through the backend REST API.",
         personalization: "Personalization",
         preferencesSubtitle: "Customize the appearance and language of your interface.",
         appearance: "Appearance",
@@ -209,6 +201,7 @@ const translations = {
         interfaceTheme: "Interface theme",
         darkTheme: "Dark",
         lightTheme: "Light",
+        kawaiiTheme: "🌸 Pink kawaii",
         language: "Language",
         languageDescription: "Select the interface language.",
         interfaceLanguage: "Interface language",
@@ -288,7 +281,7 @@ const translations = {
         minimumValue: "最小值",
         maximumValue: "最大值",
         variableEvolution: "变量变化趋势",
-        historySubtitle: "测量历史 · 模拟更新",
+        historySubtitle: "由后端保存的测量历史",
         live: "实时",
         demoData: "显示的数据仅用于演示。",
         latestReadings: "最新记录",
@@ -310,7 +303,7 @@ const translations = {
         register: "寄存器",
         frequency: "频率",
         aboutConfiguration: "关于配置",
-        configurationInfo: "此处输入的设置仅为浏览器端演示配置。在连接版本中，设置将保存到数据库，并通过 REST API 发送到后端以控制 Modbus 读取。",
+        configurationInfo: "控制器和变量从数据库加载，并通过后端 REST API 保存。",
         personalization: "个性化",
         preferencesSubtitle: "自定义界面的外观和语言。",
         appearance: "外观",
@@ -318,6 +311,7 @@ const translations = {
         interfaceTheme: "界面主题",
         darkTheme: "深色",
         lightTheme: "浅色",
+        kawaiiTheme: "🌸 粉色可爱风",
         language: "语言",
         languageDescription: "选择界面语言。",
         interfaceLanguage: "界面语言",
@@ -397,7 +391,7 @@ const translations = {
         minimumValue: "Valor mínimo",
         maximumValue: "Valor máximo",
         variableEvolution: "Evolución de las variables",
-        historySubtitle: "Historial de mediciones · Actualización simulada",
+        historySubtitle: "Historial de mediciones guardado por el backend",
         live: "EN DIRECTO",
         demoData: "Los datos mostrados son datos de demostración.",
         latestReadings: "Últimas lecturas",
@@ -419,7 +413,7 @@ const translations = {
         register: "Registro",
         frequency: "Frecuencia",
         aboutConfiguration: "Acerca de la configuración",
-        configurationInfo: "Los parámetros introducidos aquí constituyen una configuración de demostración en el navegador. En la versión conectada, se guardarán en una base de datos y se enviarán al backend mediante la API REST para controlar las lecturas Modbus.",
+        configurationInfo: "Los autómatas y variables se cargan desde la base de datos y se guardan mediante la API REST del backend.",
         personalization: "Personalización",
         preferencesSubtitle: "Personalice la apariencia y el idioma de su interfaz.",
         appearance: "Apariencia",
@@ -427,6 +421,7 @@ const translations = {
         interfaceTheme: "Tema de la interfaz",
         darkTheme: "Oscuro",
         lightTheme: "Claro",
+        kawaiiTheme: "🌸 Kawaii rosa",
         language: "Idioma",
         languageDescription: "Seleccione el idioma de la interfaz.",
         interfaceLanguage: "Idioma de la interfaz",
@@ -544,18 +539,27 @@ function applyTheme() {
         chart.options.scales.y.ticks.color = textColor;
         chart.options.scales.x.grid.color = gridColor;
         chart.options.scales.y.grid.color = gridColor;
+        chart.options.plugins.tooltip.backgroundColor = currentTheme === "dark"
+            ? "#0b1926"
+            : currentTheme === "kawaii" ? "#fff0f6" : "#ffffff";
+        chart.options.plugins.tooltip.borderColor = currentTheme === "dark"
+            ? "#355064"
+            : currentTheme === "kawaii" ? "#edb1ca" : "#d5e0e9";
+        chart.options.plugins.tooltip.titleColor = currentTheme === "dark" ? "#fff" : "#542f43";
+        chart.options.plugins.tooltip.bodyColor = currentTheme === "dark" ? "#cbd8e2" : "#654357";
 
         chart.update();
     }
 }
 
 function changeTheme(theme) {
-    if (!["dark", "light"].includes(theme)) return;
+    if (!["dark", "light", "kawaii"].includes(theme)) return;
 
     currentTheme = theme;
     localStorage.setItem("industriaTheme", theme);
 
     applyTheme();
+    renderDashboard();
     notify(t("actionDone"));
 }
 
@@ -569,7 +573,7 @@ function initializePreferences() {
         currentLanguage = "fr";
     }
 
-    if (!["dark", "light"].includes(currentTheme)) {
+    if (!["dark", "light", "kawaii"].includes(currentTheme)) {
         currentTheme = "dark";
     }
 
@@ -579,27 +583,94 @@ function initializePreferences() {
 
 
 // ==========================================
-// 6. GENERATION DES DONNEES DE DEMONSTRATION
+// 6. CONNEXION A L'API BACKEND
 // ==========================================
 
-function seedReadings() {
-    readings = [];
-    const now = Date.now();
-
-    variables.forEach((v, vi) => {
-        for (let i = 0; i < 36; i++) {
-            let base = [70, 4.2, 32, 76, 120][vi] || 50;
-            let amp = [3, 0.7, 5, 8, 12][vi] || 3;
-
-            readings.push({
-                time: new Date(now - (35 - i) * 40 * 60000),
-                machineId: v.machineId,
-                variableId: v.id,
-                value: +(base + Math.sin(i * 0.42 + vi) * amp +
-                    (Math.random() - 0.5) * amp * 0.35).toFixed(1)
-            });
+async function apiRequest(path, options = {}) {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...options.headers
         }
     });
+    const text = await response.text();
+    const result = text ? JSON.parse(text) : null;
+
+    if (!response.ok) {
+        throw new Error(result?.error || `Erreur API (${response.status})`);
+    }
+
+    return result;
+}
+
+function setApiStatus(connected) {
+    const status = document.getElementById("apiStatus");
+    const indicator = status.previousElementSibling;
+    status.textContent = connected ? "Backend connecté" : "Backend indisponible";
+    status.style.color = connected ? "#59dcb0" : "#ff7882";
+    indicator.style.background = connected ? "#35d39a" : "#ff6b75";
+    indicator.style.boxShadow = connected
+        ? "0 0 10px #35d39a"
+        : "0 0 10px #ff6b75";
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+async function loadBackendData(showError = true) {
+    try {
+        const [machineRows, variableRows, historyRows] = await Promise.all([
+            apiRequest("/machines"),
+            apiRequest("/variables"),
+            apiRequest("/historique")
+        ]);
+
+        machines = machineRows.map(machine => ({
+            id: Number(machine.id),
+            name: machine.nom,
+            ip: machine.ip_address,
+            protocol: machine.protocol
+        }));
+
+        variables = variableRows.map(variable => ({
+            id: Number(variable.id),
+            machineId: Number(variable.machine_id),
+            name: variable.nom,
+            register: variable.adresse_memoire,
+            unit: variable.unite || "",
+            type: variable.type_var,
+            frequency: Number(variable.frequence_acquisition),
+            active: true
+        }));
+
+        readings = historyRows.map(reading => ({
+            id: Number(reading.id),
+            variableId: Number(reading.variable_id),
+            machineId: variables.find(variable => variable.id === Number(reading.variable_id))?.machineId,
+            value: Number(reading.valeur),
+            time: new Date(reading.timestamp)
+        })).filter(reading => Number.isFinite(reading.value) && !Number.isNaN(reading.time.getTime()));
+
+        setApiStatus(true);
+    } catch (error) {
+        machines = [];
+        variables = [];
+        readings = [];
+        setApiStatus(false);
+        if (showError) notify(`Connexion au backend impossible : ${error.message}`);
+    }
+
+    populateMachineFilter();
+    renderSettings();
+    renderDashboard();
 }
 
 
@@ -690,7 +761,7 @@ function populateMachineFilter() {
     select.innerHTML =
         `<option value="all">${t("allMachines")}</option>` +
         machines.map(m =>
-            `<option value="${m.id}">${m.name}</option>`
+            `<option value="${m.id}">${escapeHtml(m.name)}</option>`
         ).join("");
 
     select.value = machines.some(m => String(m.id) === previousValue)
@@ -709,7 +780,7 @@ function updateVariableOptions() {
         `<option value="all">${t("allVariables")}</option>` +
         variables
             .filter(v => machineId === "all" || v.machineId == machineId)
-            .map(v => `<option value="${v.id}">${v.name}</option>`)
+            .map(v => `<option value="${v.id}">${escapeHtml(v.name)}</option>`)
             .join("");
 
     select.value = [...select.options].some(o => o.value === previousValue)
@@ -762,16 +833,16 @@ function renderDashboard() {
     const unit = primary?.unit || "";
 
     document.getElementById("kpiLast").innerHTML =
-        `${vals.at(-1) ?? "—"} <small>${unit}</small>`;
+        `${vals.at(-1) ?? "—"} <small>${escapeHtml(unit)}</small>`;
 
     document.getElementById("kpiAvg").innerHTML =
-        `${vals.length ? avg.toFixed(1) : "—"} <small>${unit}</small>`;
+        `${vals.length ? avg.toFixed(1) : "—"} <small>${escapeHtml(unit)}</small>`;
 
     document.getElementById("kpiMin").innerHTML =
-        `${vals.length ? Math.min(...vals).toFixed(1) : "—"} <small>${unit}</small>`;
+        `${vals.length ? Math.min(...vals).toFixed(1) : "—"} <small>${escapeHtml(unit)}</small>`;
 
     document.getElementById("kpiMax").innerHTML =
-        `${vals.length ? Math.max(...vals).toFixed(1) : "—"} <small>${unit}</small>`;
+        `${vals.length ? Math.max(...vals).toFixed(1) : "—"} <small>${escapeHtml(unit)}</small>`;
 
 
     // ======================================
@@ -782,7 +853,13 @@ function renderDashboard() {
 
     if (chart) chart.destroy();
 
-    const colors = [
+    const colors = currentTheme === "kawaii" ? [
+        "#e879a7",
+        "#b67bd1",
+        "#f2a7bd",
+        "#8dbfa9",
+        "#e5a84e"
+    ] : [
         "#27c5df",
         "#35d39a",
         "#f4b65f",
@@ -790,12 +867,19 @@ function renderDashboard() {
         "#ff7882"
     ];
 
+    const chartBuckets = [...new Set(rows.map(r => Math.floor(r.time.getTime() / 5000) * 5000))]
+        .sort((a, b) => a - b);
+
     const datasets = activeVars.map((v, i) => {
-        const variableRows = rows.filter(r => r.variableId === v.id);
+        const valuesByBucket = new Map();
+        rows.filter(r => r.variableId === v.id).forEach(reading => {
+            const bucket = Math.floor(reading.time.getTime() / 5000) * 5000;
+            valuesByBucket.set(bucket, reading.value);
+        });
 
         return {
             label: `${v.name} (${v.unit})`,
-            data: variableRows.map(r => r.value),
+            data: chartBuckets.map(bucket => valuesByBucket.get(bucket) ?? null),
             borderColor: colors[i % colors.length],
             backgroundColor: colors[i % colors.length],
             borderWidth: 2,
@@ -812,7 +896,7 @@ function renderDashboard() {
         type: "line",
 
         data: {
-            labels: primaryRows.map(r => fmtDate(r.time)),
+            labels: chartBuckets.map(bucket => fmtDate(new Date(bucket))),
             datasets: datasets
         },
 
@@ -836,11 +920,15 @@ function renderDashboard() {
                 },
 
                 tooltip: {
-                    backgroundColor: currentTheme === "dark" ? "#0b1926" : "#ffffff",
-                    borderColor: currentTheme === "dark" ? "#355064" : "#d5e0e9",
+                    backgroundColor: currentTheme === "dark"
+                        ? "#0b1926"
+                        : currentTheme === "kawaii" ? "#fff0f6" : "#ffffff",
+                    borderColor: currentTheme === "dark"
+                        ? "#355064"
+                        : currentTheme === "kawaii" ? "#edb1ca" : "#d5e0e9",
                     borderWidth: 1,
-                    titleColor: currentTheme === "dark" ? "#fff" : "#172b3d",
-                    bodyColor: currentTheme === "dark" ? "#cbd8e2" : "#24394b"
+                    titleColor: currentTheme === "dark" ? "#fff" : "#542f43",
+                    bodyColor: currentTheme === "dark" ? "#cbd8e2" : "#654357"
                 }
             },
 
@@ -884,10 +972,10 @@ function renderDashboard() {
             return `
                 <tr>
                     <td>${fmtDate(r.time)}</td>
-                    <td>${machineName(r.machineId)}</td>
-                    <td>${v?.name || "—"}</td>
+                    <td>${escapeHtml(machineName(r.machineId))}</td>
+                    <td>${escapeHtml(v?.name || "—")}</td>
                     <td><strong>${r.value.toFixed(1)}</strong></td>
-                    <td>${v?.unit || "—"}</td>
+                    <td>${escapeHtml(v?.unit || "—")}</td>
                     <td>
                         <span class="status ${v?.active ? "ok" : "warn"}">
                             ${v?.active ? t("normal") : t("inactive")}
@@ -1007,9 +1095,9 @@ function renderSettings() {
                         </div>
 
                         <div>
-                            <div class="fw-semibold">${m.name}</div>
+                            <div class="fw-semibold">${escapeHtml(m.name)}</div>
                             <div class="panel-sub">
-                                <i class="bi bi-hdd-network me-1"></i>${m.ip}
+                                <i class="bi bi-hdd-network me-1"></i>${escapeHtml(m.ip)} · ${escapeHtml(m.protocol)}
                             </div>
                         </div>
                     </div>
@@ -1034,13 +1122,13 @@ function renderSettings() {
             ? variables.map(v => `
                 <tr>
                     <td>
-                        <strong>${v.name}</strong>
-                        <div class="panel-sub">${v.type} · ${v.unit}</div>
+                        <strong>${escapeHtml(v.name)}</strong>
+                        <div class="panel-sub">${escapeHtml(v.type)} · ${escapeHtml(v.unit)}</div>
                     </td>
 
-                    <td>${machineName(v.machineId)}</td>
+                    <td>${escapeHtml(machineName(v.machineId))}</td>
 
-                    <td><span class="tag">${v.register}</span></td>
+                    <td><span class="tag">${escapeHtml(v.register)}</span></td>
 
                     <td>${v.frequency} ${t("second")}</td>
 
@@ -1054,10 +1142,6 @@ function renderSettings() {
                         <div class="d-flex gap-1">
                             <button class="btn-outline" onclick="openVariableModal(${v.id})">
                                 <i class="bi bi-pencil"></i>
-                            </button>
-
-                            <button class="btn-outline" onclick="toggleVariable(${v.id})">
-                                <i class="bi bi-power"></i>
                             </button>
 
                             <button class="btn-outline" onclick="deleteVariable(${v.id})">
@@ -1081,6 +1165,7 @@ function openMachineModal(id) {
     document.getElementById("machineEditId").value = machine?.id || "";
     document.getElementById("machineName").value = machine?.name || "";
     document.getElementById("machineIP").value = machine?.ip || "";
+    document.getElementById("machineProtocol").value = machine?.protocol || "Modbus TCP";
 
     document.getElementById("machineModalTitle").textContent =
         machine ? t("editMachineTitle") : t("addMachineTitle");
@@ -1088,50 +1173,42 @@ function openMachineModal(id) {
     machineModal().show();
 }
 
-function saveMachine() {
+async function saveMachine() {
     const id = +document.getElementById("machineEditId").value;
 
     const name = document.getElementById("machineName").value.trim();
     const ip = document.getElementById("machineIP").value.trim();
+    const protocol = document.getElementById("machineProtocol").value;
 
     if (!name || !ip) {
         notify(t("completeFields"));
         return;
     }
 
-    if (id) {
-        Object.assign(
-            machines.find(m => m.id === id),
-            { name, ip }
-        );
-    } else {
-        machines.push({
-            id: Date.now(),
-            name,
-            ip
+    try {
+        const payload = { nom: name, protocol, ip_address: ip };
+        await apiRequest(id ? `/machines/${id}` : "/machines", {
+            method: id ? "PATCH" : "POST",
+            body: JSON.stringify(payload)
         });
+        machineModal().hide();
+        await loadBackendData(false);
+        notify(t("machineSaved"));
+    } catch (error) {
+        notify(`Enregistrement impossible : ${error.message}`);
     }
-
-    machineModal().hide();
-
-    populateMachineFilter();
-    renderSettings();
-
-    notify(t("machineSaved"));
 }
 
-function deleteMachine(id) {
+async function deleteMachine(id) {
     if (!confirm(t("machineDeleteConfirm"))) return;
 
-    machines = machines.filter(m => m.id !== id);
-    variables = variables.filter(v => v.machineId !== id);
-    readings = readings.filter(r => r.machineId !== id);
-
-    populateMachineFilter();
-    renderSettings();
-    renderDashboard();
-
-    notify(t("machineDeleted"));
+    try {
+        await apiRequest(`/machines/${id}`, { method: "DELETE" });
+        await loadBackendData(false);
+        notify(t("machineDeleted"));
+    } catch (error) {
+        notify(`Suppression impossible : ${error.message}`);
+    }
 }
 
 
@@ -1152,7 +1229,7 @@ function openVariableModal(id) {
 
     document.getElementById("variableMachine").innerHTML =
         machines.map(m =>
-            `<option value="${m.id}">${m.name}</option>`
+            `<option value="${m.id}">${escapeHtml(m.name)}</option>`
         ).join("");
 
     document.getElementById("variableMachine").value =
@@ -1176,7 +1253,7 @@ function openVariableModal(id) {
     variableModal().show();
 }
 
-function saveVariable() {
+async function saveVariable() {
     const id = +document.getElementById("variableEditId").value;
 
     const name = document.getElementById("variableName").value.trim();
@@ -1190,106 +1267,54 @@ function saveVariable() {
         +document.getElementById("variableFrequency").value || 1
     );
 
-    if (!name || !register || !unit) {
+    if (!name || !register || !machineId) {
         notify(t("completeFields"));
         return;
     }
 
-    const data = {
-        name,
-        machineId,
-        register,
-        unit,
-        type,
-        frequency,
-        active: true
-    };
-
-    if (id) {
-        Object.assign(
-            variables.find(v => v.id === id),
-            data
-        );
-    } else {
-        const newId = Date.now();
-
-        variables.push({
-            id: newId,
-            ...data
+    try {
+        const payload = {
+            machine_id: machineId,
+            nom: name,
+            type_var: type,
+            adresse_memoire: register,
+            unite: unit || null,
+            frequence_acquisition: frequency
+        };
+        await apiRequest(id ? `/variables/${id}` : "/variables", {
+            method: id ? "PATCH" : "POST",
+            body: JSON.stringify(payload)
         });
-
-        const base = 50;
-
-        for (let i = 0; i < 36; i++) {
-            readings.push({
-                time: new Date(
-                    Date.now() - (35 - i) * 40 * 60000
-                ),
-                machineId,
-                variableId: newId,
-                value: +(base + Math.sin(i * 0.4) * 5).toFixed(1)
-            });
-        }
+        variableModal().hide();
+        await loadBackendData(false);
+        notify(t("variableSaved"));
+    } catch (error) {
+        notify(`Enregistrement impossible : ${error.message}`);
     }
-
-    variableModal().hide();
-
-    updateVariableOptions();
-    renderSettings();
-    renderDashboard();
-
-    notify(t("variableSaved"));
 }
 
 
 // ==========================================
-// 17. ACTIVATION / DESACTIVATION
+// 17. SUPPRESSION DES VARIABLES
 // ==========================================
 
-function toggleVariable(id) {
-    const variable = variables.find(x => x.id === id);
-
-    if (!variable) return;
-
-    variable.active = !variable.active;
-
-    renderSettings();
-    renderDashboard();
-
-    notify(
-        variable.active
-            ? t("surveillanceEnabled")
-            : t("surveillanceDisabled")
-    );
-}
-
-
-// ==========================================
-// 18. SUPPRESSION DES VARIABLES
-// ==========================================
-
-function deleteVariable(id) {
+async function deleteVariable(id) {
     if (!confirm(t("variableDeleteConfirm"))) return;
 
-    variables = variables.filter(v => v.id !== id);
-    readings = readings.filter(r => r.variableId !== id);
-
-    updateVariableOptions();
-    renderSettings();
-    renderDashboard();
-
-    notify(t("variableDeleted"));
+    try {
+        await apiRequest(`/variables/${id}`, { method: "DELETE" });
+        await loadBackendData(false);
+        notify(t("variableDeleted"));
+    } catch (error) {
+        notify(`Suppression impossible : ${error.message}`);
+    }
 }
 
 
 // ==========================================
-// 19. INITIALISATION DE L'APPLICATION
+// 18. INITIALISATION DE L'APPLICATION
 // ==========================================
 
-seedReadings();
-
-populateMachineFilter();
-
 initializePreferences();
-
-renderDashboard();
+loadBackendData();
+setInterval(() => loadBackendData(false), 15000);

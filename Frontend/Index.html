@@ -34,7 +34,7 @@
     <div class="side-bottom">
         <div class="d-flex align-items-center gap-2 mb-2">
             <span class="dot"></span>
-            <span style="color:#59dcb0" data-i18n="systemOperational">Système opérationnel</span>
+            <span id="apiStatus" style="color:#59dcb0">Connexion au backend…</span>
         </div>
         <span data-i18n="prototype">Prototype de supervision v1.0</span><br>
         <span data-i18n="openSource">Solution open source</span>
@@ -171,7 +171,7 @@
                     <div>
                         <div class="panel-title" data-i18n="variableEvolution">Évolution des variables</div>
                         <div class="panel-sub" data-i18n="historySubtitle">
-                            Historique des mesures · Actualisation simulée
+                            Historique des mesures enregistré par le backend
                         </div>
                     </div>
                     <span class="live-pill">
@@ -186,7 +186,7 @@
 
                 <div class="legend-note mt-2">
                     <i class="bi bi-info-circle me-1"></i>
-                    <span data-i18n="demoData">Les données affichées sont des données de démonstration.</span>
+                    <span>Les données affichées proviennent de la base de données.</span>
                 </div>
             </div>
 
@@ -286,9 +286,8 @@
                     <span data-i18n="aboutConfiguration">À propos de la configuration</span>
                 </div>
                 <div class="panel-sub mt-2" data-i18n="configurationInfo">
-                    Les paramètres saisis ici constituent une configuration de démonstration côté navigateur.
-                    Dans la version connectée, ils seront enregistrés en base de données et transmis au backend
-                    via l'API REST pour piloter les lectures Modbus.
+                    Les automates et variables affichés sont chargés depuis la base de données et enregistrés
+                    via l'API REST du backend.
                 </div>
             </div>
         </div>
@@ -319,6 +318,7 @@
                     <select class="form-select" id="themeSelector" onchange="changeTheme(this.value)">
                         <option value="dark" data-i18n="darkTheme">Sombre</option>
                         <option value="light" data-i18n="lightTheme">Clair</option>
+                        <option value="kawaii" data-i18n="kawaiiTheme">🌸 Kawaii rose</option>
                     </select>
                 </div>
 
@@ -372,6 +372,10 @@
                 <input type="hidden" id="machineEditId">
                 <label class="form-label" data-i18n="machineName">Nom de l'automate</label>
                 <input class="form-control mb-3" id="machineName" placeholder="Ex. Automate ligne 1">
+                <label class="form-label">Protocole</label>
+                <select class="form-select mb-3" id="machineProtocol">
+                    <option value="Modbus TCP">Modbus TCP</option>
+                </select>
                 <label class="form-label" data-i18n="ipAddress">Adresse IP</label>
                 <input class="form-control" id="machineIP" placeholder="192.168.1.10">
             </div>
